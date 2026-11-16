@@ -10,6 +10,7 @@
 <img src="https://img.shields.io/badge/版本-1.0.0-c96c4f?style=flat-square" alt="version">
 <img src="https://img.shields.io/badge/角色-17_个职业-e7b64f?style=flat-square" alt="17 costumes">
 <img src="https://img.shields.io/badge/测试-22_通过-7fc8a9?style=flat-square" alt="tests">
+<a href="https://github.com/Frisk-Toby/clawd-bar/releases/latest"><img src="https://img.shields.io/github/v/release/Frisk-Toby/clawd-bar?style=flat-square&color=b39ae6&label=发行版" alt="release"></a>
 
 <br><br>
 
