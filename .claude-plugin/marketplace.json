@@ -1,0 +1,11 @@
+{
+  "name": "clawd-bar",
+  "owner": { "name": "Frisk-Toby" },
+  "plugins": [
+    {
+      "name": "clawd-bar",
+      "source": "./",
+      "description": "输入框上方靠右的窄带:Clawd 像素动画 + prompt 缓存倒计时。"
+    }
+  ]
+}
