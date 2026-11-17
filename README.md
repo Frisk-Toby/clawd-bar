@@ -7,7 +7,7 @@
 它们陪你写代码，也替你盯着 prompt 缓存还剩多久。
 
 <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square" alt="Claude Code plugin">
-<img src="https://img.shields.io/badge/版本-1.1.0-c96c4f?style=flat-square" alt="version">
+<img src="https://img.shields.io/badge/版本-1.1.1-c96c4f?style=flat-square" alt="version">
 <img src="https://img.shields.io/badge/角色-17_个职业-e7b64f?style=flat-square" alt="17 costumes">
 <img src="https://img.shields.io/badge/测试-22_通过-7fc8a9?style=flat-square" alt="tests">
 <a href="https://github.com/Frisk-Toby/clawd-bar/releases/latest"><img src="https://img.shields.io/github/v/release/Frisk-Toby/clawd-bar?style=flat-square&color=b39ae6&label=发行版" alt="release"></a>
@@ -103,19 +103,58 @@
 
 ## 安装
 
-最省事的办法：把仓库交给 Claude,说一句
+**Windows 和 macOS 都能用。** 插件跑在 Claude Code 里，两个系统是同一份代码，只是安装方式略有不同。挑一种最顺手的就行。
 
-> 按 CLAUDE.md 帮我装好
+### 方法一：让 Claude 帮你装(最省事)
 
-想自己动手的话，依次运行这三条命令:
+在 Claude Code 里发一句：
+
+> 帮我装好这个插件：https://github.com/Frisk-Toby/clawd-bar ，按仓库里的 CLAUDE.md 来
+
+### 方法二：下载安装包
+
+到 [发行版页面](https://github.com/Frisk-Toby/clawd-bar/releases/latest) 下载你系统对应的那个：
+
+| 系统 | 下载 | 怎么装 |
+|---|---|---|
+| <img src="https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows"> | `clawd-bar-windows.zip` | 解压，双击 `install-windows.cmd` |
+| <img src="https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white" alt="macOS"> | `clawd-bar-macos.zip` | 解压，打开「终端」，输入 `bash ` 再把 `install-macos.sh` 拖进窗口，回车 |
+
+以后更新，再运行一次同一个安装文件就行。
+
+### 方法三：命令行
+
+Windows 在 PowerShell 里、macOS 在「终端」里，运行同样两条命令：
 
 ```bash
-git clone https://github.com/Frisk-Toby/clawd-bar.git
-claude plugin marketplace add "<clone 下来的文件夹绝对路径>"
+claude plugin marketplace add Frisk-Toby/clawd-bar
 claude plugin install clawd-bar@clawd-bar
 ```
 
-装完后**重启 Claude 桌面版**,窄带就会出现在输入框上方。在终端版 Claude Code 里也能用，只是图形会退化成一行文字进度条 `▰▰▰▰▰▰▱▱▱▱`。
+找不到 `claude` 命令的话，用桌面版自带的：
+
+| 系统 | `claude` 在哪 |
+|---|---|
+| Windows | `%USERPROFILE%\.local\bin\claude.exe` |
+| macOS | `~/.local/bin/claude` |
+
+### 装完记得重启
+
+| 系统 | 怎么完全退出 Claude 桌面版 |
+|---|---|
+| Windows | 右下角托盘里的 Claude 图标右键 → 退出(只关窗口不算) |
+| macOS | 按 `⌘Q` |
+
+重新打开后，窄带就会出现在输入框上方。在终端版 Claude Code 里也能用，只是图形会退化成一行文字进度条 `▰▰▰▰▰▰▱▱▱▱`。
+
+### 更新
+
+```bash
+claude plugin marketplace update clawd-bar
+claude plugin update clawd-bar@clawd-bar
+```
+
+然后照上面的方法重启桌面版。
 
 ## 命令
 

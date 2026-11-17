@@ -1,0 +1,9 @@
+Clawd Bar · Windows 安装包
+
+1. 解压这个 zip。
+2. 双击「install-windows.cmd」。
+3. 看到「装好了」后，完全退出 Claude 桌面版（右下角托盘里的 Claude 图标右键 - 退出），再重新打开。
+   窄带会出现在输入框上方。
+
+以后更新：再双击一次「install-windows.cmd」即可。
+项目主页：https://github.com/Frisk-Toby/clawd-bar

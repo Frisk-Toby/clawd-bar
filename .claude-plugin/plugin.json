@@ -1,6 +1,6 @@
 {
   "name": "clawd-bar",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "输入框上方的窄条:左侧铺满一队职业 Clawd(侦探、厨师、魔法师、宇航员……),右侧是 prompt 缓存倒计时,快过期和已过期会提醒。",
   "types": "./types/index.d.ts"
 }

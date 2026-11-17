@@ -1,0 +1,10 @@
+Clawd Bar · macOS 安装包
+
+1. 解压这个 zip。
+2. 打开「终端」（启动台搜索"终端"或 Terminal）。
+3. 输入 bash 和一个空格，把 install-macos.sh 拖进终端窗口，按回车。
+4. 看到「装好了」后，按 ⌘Q 完全退出 Claude 桌面版，再重新打开。
+   窄带会出现在输入框上方。
+
+以后更新：再运行一次 install-macos.sh 即可。
+项目主页：https://github.com/Frisk-Toby/clawd-bar

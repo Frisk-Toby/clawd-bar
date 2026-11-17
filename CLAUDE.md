@@ -4,17 +4,20 @@
 
 ## 安装
 
-1. 先确认仓库文件夹放在一个固定的位置，比如 `~/clawd-bar`。插件市场按路径读取，装好以后不要再挪动它。
-2. 依次运行:
+Windows 和 macOS 一样装，插件是同一份代码。不需要 clone 仓库，直接从 GitHub 装：
+
+1. 依次运行：
    ```bash
-   claude plugin marketplace add "<本文件夹的绝对路径>"
+   claude plugin marketplace add Frisk-Toby/clawd-bar
    claude plugin install clawd-bar@clawd-bar
    claude plugin list
    ```
-   `list` 的输出里应该有 `clawd-bar@clawd-bar`,状态是 `✔ enabled`。
-3. 请用户**重启 Claude 桌面版**。重启后，窄带会出现在输入框上方。
+   `list` 的输出里应该有 `clawd-bar@clawd-bar`，状态是 `✔ enabled`。
+2. 请用户**完全退出并重新打开 Claude 桌面版**：Windows 是右下角托盘里的 Claude 图标右键 → 退出；macOS 是 `⌘Q`。只关窗口不算。重新打开后，窄带会出现在输入框上方。
 
 > 找不到 `claude` 命令的话，桌面版自带的 CLI 在 `%USERPROFILE%\.local\bin\claude.exe`(Windows)或 `~/.local/bin/claude`(macOS / Linux)。
+>
+> 用户已经把仓库 clone 到本地、想从本地装的话，把第一条换成 `claude plugin marketplace add "<本文件夹的绝对路径>"`，装好以后不要再挪动这个文件夹。
 
 ## 装好之后
 
@@ -26,7 +29,7 @@
 
 ## 更新
 
-在本文件夹运行 `git pull`,然后依次运行:
+依次运行(从本地文件夹装的，先在那个文件夹里 `git pull`):
 
 ```bash
 claude plugin marketplace update clawd-bar
