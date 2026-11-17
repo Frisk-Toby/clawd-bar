@@ -7,7 +7,7 @@
 它们陪你写代码，也替你盯着 prompt 缓存还剩多久。
 
 <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square" alt="Claude Code plugin">
-<img src="https://img.shields.io/badge/版本-1.1.1-c96c4f?style=flat-square" alt="version">
+<img src="https://img.shields.io/badge/版本-1.1.2-c96c4f?style=flat-square" alt="version">
 <img src="https://img.shields.io/badge/角色-17_个职业-e7b64f?style=flat-square" alt="17 costumes">
 <img src="https://img.shields.io/badge/测试-22_通过-7fc8a9?style=flat-square" alt="tests">
 <a href="https://github.com/Frisk-Toby/clawd-bar/releases/latest"><img src="https://img.shields.io/github/v/release/Frisk-Toby/clawd-bar?style=flat-square&color=b39ae6&label=发行版" alt="release"></a>
@@ -23,7 +23,7 @@
 > **一句话**:Claude 的 prompt 缓存过期了，下一条消息会贵很多，可你平时根本看不见它什么时候过期。
 > Clawd Bar 让一队小人替你盯着：缓存温热时它们各干各的，快过期了开始慌张，过期了就全员冻成冰蓝。
 
-🎬 **[看 78 秒宣传片](https://github.com/Frisk-Toby/clawd-bar/releases/download/v1.1.1/clawd-bar-promo.mp4)**　·　🛠️ **[自己动手改(DIY 指南)](DIY.md)**
+🎬 **[看 78 秒宣传片](https://github.com/Frisk-Toby/clawd-bar/releases/download/v1.1.2/clawd-bar-promo.mp4)**　·　🛠️ **[自己动手改(DIY 指南)](DIY.md)**
 
 <br>
 

@@ -6,9 +6,14 @@ const CELL_W = 2
 const CELL_H = 4
 const ROWS = 9
 
-const FG = '#e8e6e3'
-const DIM = '#7d7a75'
-const STAR = '#fffaf0'
+// 窄带底板是客户端自己画的(浅色主题偏白、深色主题偏黑),插件读不到主题,所以夜景用两边都看得清的配色:
+// 云是中灰、比原图密一档(远处那层再淡一些),月牙和光晕是金色;星星是金芯 + 深色十字,
+// 两者反相呼吸:浅色底上金芯暗时十字显出来,深色底上十字融进背景、看到金色亮星。
+const FG = '#7f786d'
+const DIM = '#7f786d'
+const DIM_OP = 0.7
+const GOLD = '#e0a83a'
+const INK = '#26231f'
 
 /**
  * 欢迎画面原图的 9 行(58 列):月牙在右上,左上一朵亮云,右下一朵暗云。
@@ -79,6 +84,11 @@ const runs = (row: string, dimRow: boolean[]) => {
   return out
 }
 
+/** 金芯四周的深色十字:四条臂各长 n 像素,不画四角(浅色底上看是黑色小星,深色底上融进背景)。 */
+const cross = (cx: number, cy: number, n: number) =>
+  `<rect x="${cx - 1 - n}" y="${cy - 1}" width="${n}" height="2"/><rect x="${cx + 1}" y="${cy - 1}" width="${n}" height="2"/>` +
+  `<rect x="${cx - 1}" y="${cy - 1 - n}" width="2" height="${n}"/><rect x="${cx - 1}" y="${cy + 1}" width="2" height="${n}"/>`
+
 /** 像素夜景 Svg;cells = 宽多少个字符格,waiting = 等额度时月亮旁边飘 z。 */
 export const pixelSky = (cells: number, waiting = false): string => {
   const { text, dim } = skyGrid(cells)
@@ -88,9 +98,8 @@ export const pixelSky = (cells: number, waiting = false): string => {
   const defs =
     `<defs>` +
     // ░ = 稀疏棋盘格,▒ = 半密棋盘格
-    `<pattern id="p1" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="${FG}"/></pattern>` +
-    `<pattern id="p1d" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="${DIM}"/></pattern>` +
     `<pattern id="p2" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="${FG}"/><rect x="1" y="1" width="1" height="1" fill="${FG}"/></pattern>` +
+    `<pattern id="pm" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="${GOLD}"/></pattern>` +
     `</defs>`
   // 月牙在原图第 40 列以右、前 6 行;单独一层,不跟着云晃。
   const moonX = w - ART_W + 40
@@ -103,9 +112,9 @@ export const pixelSky = (cells: number, waiting = false): string => {
       const x = s.x * CELL_W
       const y = r * CELL_H
       const ww = s.n * CELL_W
-      let fill = s.dim ? DIM : FG
+      let fill = s.dim ? DIM : isMoon ? GOLD : FG
       let op = 1
-      if (s.ch === '░') fill = s.dim ? 'url(#p1d)' : 'url(#p1)'
+      if (s.ch === '░') fill = isMoon ? 'url(#pm)' : 'url(#p2)'
       else if (s.ch === '▒') fill = 'url(#p2)'
       else if (s.ch === '▓') op = 0.75
       const rect = `<rect x="${x}" y="${y}" width="${ww}" height="${CELL_H}" fill="${fill}"${op < 1 ? ` opacity="${op}"` : ''}/>`
@@ -119,11 +128,11 @@ export const pixelSky = (cells: number, waiting = false): string => {
   const drift = (layer: string, dur: number) =>
     `<g>${layer}<g transform="translate(${-W} 0)">${layer}</g>` +
     `<animateTransform attributeName="transform" type="translate" from="0 0" to="${W} 0" dur="${dur}s" repeatCount="indefinite"/></g>`
-  const cloudLayer = drift(lo, Math.round(W * 0.4)) + drift(hi, Math.round(W * 0.22))
+  const cloudLayer = `<g opacity="${DIM_OP}">${drift(lo, Math.round(W * 0.4))}</g>` + drift(hi, Math.round(W * 0.22))
   // 像素流星:亮头 + 一串越来越淡的像素尾巴,从右上斜划到左下,然后藏起来等下一轮。
   const meteor = (x0: number, y0: number, len: number, begin: number, dur: number) => {
-    let trail = `<rect x="0" y="0" width="2" height="2" fill="${STAR}"/>`
-    for (let i = 1; i <= 5; i++) trail += `<rect x="${i * 2}" y="${-i}" width="2" height="1" fill="${FG}" opacity="${(1 - i * 0.17).toFixed(2)}"/>`
+    let trail = `<g fill="${INK}">${cross(1, 1, 1)}</g><rect x="0" y="0" width="2" height="2" fill="${GOLD}"/>`
+    for (let i = 1; i <= 5; i++) trail += `<rect x="${i * 2}" y="${-i}" width="2" height="1" fill="${GOLD}" opacity="${(1 - i * 0.17).toFixed(2)}"/>`
     const k = (0.9 / dur).toFixed(3)
     return (
       `<g opacity="0">${trail}` +
@@ -140,15 +149,23 @@ export const pixelSky = (cells: number, waiting = false): string => {
       if (ch !== '*' && ch !== '+') continue
       const cx = c * CELL_W + 1
       const cy = r * CELL_H + 2
-      const col = dim[r][c] ? DIM : ch === '+' ? STAR : FG
       const big = ch === '+'
+      // 金芯 + 深色十字;远处(暗行)的星星整体淡一些。
+      const far = dim[r][c] ? ' opacity=".6"' : ''
       const d = ((hash(r * 131 + c) % 30) / 10).toFixed(1)
       stars += big
-        ? `<g fill="${col}"><rect x="${cx - 1}" y="${cy - 1}" width="2" height="2"/>` +
-          `<g opacity="0"><rect x="${cx - 3}" y="${cy - 0.5}" width="6" height="1"/><rect x="${cx - 0.5}" y="${cy - 3}" width="1" height="6"/>` +
+        ? `<g${far}><rect x="${cx - 1}" y="${cy - 1}" width="2" height="2" fill="${GOLD}"/>` +
+          // 深色十字(长臂):平时在,金色光芒亮起时隐掉,两者此消彼长
+          `<g fill="${INK}">${cross(cx, cy, 2)}<animate attributeName="opacity" values="1;1;0;1;1" keyTimes="0;.35;.5;.65;1" dur="2.4s" begin="${d}s" repeatCount="indefinite"/></g>` +
+          `<g opacity="0" fill="${GOLD}"><rect x="${cx - 4}" y="${cy - 0.5}" width="2" height="1"/><rect x="${cx + 2}" y="${cy - 0.5}" width="2" height="1"/><rect x="${cx - 0.5}" y="${cy - 4}" width="1" height="2"/><rect x="${cx - 0.5}" y="${cy + 2}" width="1" height="2"/>` +
           `<animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;.35;.5;.65;1" dur="2.4s" begin="${d}s" repeatCount="indefinite"/></g></g>`
-        : `<rect x="${cx - 1}" y="${cy - 1}" width="2" height="2" fill="${col}">` +
-          `<animate attributeName="opacity" values="1;.1;1" dur="${(2.4 + (hash(c * 7 + r) % 20) / 10).toFixed(1)}s" begin="${d}s" repeatCount="indefinite"/></rect>`
+        : (() => {
+            const dur = (2.4 + (hash(c * 7 + r) % 20) / 10).toFixed(1)
+            // 金芯呼吸;深色十字反相呼吸:金芯最亮时十字最淡,金芯暗下去时十字显出来
+            return `<g${far}><rect x="${cx - 1}" y="${cy - 1}" width="2" height="2" fill="${GOLD}">` +
+              `<animate attributeName="opacity" values="1;.25;1" dur="${dur}s" begin="${d}s" repeatCount="indefinite"/></rect>` +
+              `<g fill="${INK}" opacity=".15">${cross(cx, cy, 1)}<animate attributeName="opacity" values=".15;1;.15" dur="${dur}s" begin="${d}s" repeatCount="indefinite"/></g></g>`
+          })()
     }
   })
   // 月光:月亮背后两圈棋盘格抖动的光晕(像素味的柔光),一圈慢呼吸、一圈慢慢外扩再收;
@@ -156,14 +173,14 @@ export const pixelSky = (cells: number, waiting = false): string => {
   const mcx = (w - ART_W + 49) * CELL_W + 1
   const mcy = 12
   const glow =
-    `<circle cx="${mcx}" cy="${mcy}" r="20" fill="url(#p1)" opacity=".1">` +
+    `<circle cx="${mcx}" cy="${mcy}" r="20" fill="url(#pm)" opacity=".1">` +
     `<animate attributeName="opacity" values=".05;.16;.05" dur="5s" repeatCount="indefinite"/>` +
     `<animate attributeName="r" values="18;22;18" dur="5s" repeatCount="indefinite"/></circle>` +
-    `<circle cx="${mcx}" cy="${mcy}" r="14" fill="url(#p1)" opacity=".22">` +
+    `<circle cx="${mcx}" cy="${mcy}" r="14" fill="url(#pm)" opacity=".22">` +
     `<animate attributeName="opacity" values=".14;.3;.14" dur="3.2s" repeatCount="indefinite"/></circle>` +
     [[-15, -6, 0], [13, 9, 1.3], [-11, 11, 2.6], [15, -9, 3.6]]
       .map(([dx, dy, d]) =>
-        `<rect x="${mcx + dx}" y="${mcy + dy}" width="1" height="1" fill="${STAR}" opacity="0">` +
+        `<rect x="${mcx + dx}" y="${mcy + dy}" width="1" height="1" fill="${GOLD}" opacity="0">` +
         `<animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.12;.3;1" dur="4.8s" begin="${d}s" repeatCount="indefinite"/></rect>`)
       .join('')
   const moonLayer = `<g>${moon}<animate attributeName="opacity" values="1;.82;1" dur="3.2s" repeatCount="indefinite"/></g>`
