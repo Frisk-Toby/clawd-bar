@@ -38,6 +38,10 @@ claude plugin update clawd-bar@clawd-bar
 
 最后重启桌面版。
 
+## 用户想改插件(DIY)
+
+先读 [DIY.md](DIY.md)：改代码的流程、代码地图、官方限制，以及我们在桌面版上踩过的坑。照它的建议小步改、每次跑测试、升版本、请用户重启验证。
+
 ## 出了问题
 
 - **窄带不显示**:先运行 `claude plugin update clawd-bar@clawd-bar` 再重启桌面版。还是不显示的话，在本文件夹运行 `claude plugin test .`,看看测试有没有失败。
