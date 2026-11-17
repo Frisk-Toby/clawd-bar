@@ -202,7 +202,7 @@ test('夜班圆点条:还剩的实心,用掉的变小点,允许花的那段换�
   expect(REG.nightCap({ mode: 'free', base: 70, spent: 0, lastWeek: 30, waitUntil: null, resumes: 0 })).toBe(70)
 })
 
-test('续:按下开启并提示模式;缓存剩 5 分钟以用户身份自动发 114514,同一段缓存只发一次', async ($, on) => {
+test('续:按下开启并提示模式;缓存剩 5 分钟以插件名义自动发 1,同一段缓存只发一次', async ($, on) => {
   const clock = mock.clock(on, { now: NOW })
   mock.store(on)
   const toasts: string[] = []
@@ -223,35 +223,34 @@ test('续:按下开启并提示模式;缓存剩 5 分钟以用户身份自动发
   expect((await band.find({ key: 'keep' }))?.props.label).toBe('续')
   await band.press({ key: 'keep' })
   await band.unmount()
-  expect(toasts.some(t => t.includes('已开') && t.includes('114514'))).toBe(true)
+  expect(toasts.some(t => t.includes('已开') && t.includes('发 1'))).toBe(true)
   band = await mount($)
   expect((await band.find({ key: 'keep' }))?.props.variant).toBe('primary')
   expect(await texts(band)).toContain('自动续')
   await band.unmount()
   await clock.advance(6 * 60_000)
-  const keeps = sent.filter(s => s.text === '114514')
+  const keeps = sent.filter(s => s.text === '1')
   expect(keeps.length).toBe(1)
-  // 插件自己发的消息不经过自己的 prompt.submit 钩子:说明靠对话开头的 prompt.context 规矩。
-  expect(keeps[0].origin?.asUser).toBe(true)
+  // 以插件名义发(不是 asUser),模型才分得清这不是用户回答"选 1";说明靠对话开头的 prompt.context 规矩。
+  expect(keeps[0].origin?.kind).toBe('plugin')
+  expect(keeps[0].origin?.asUser).toBeUndefined()
   await clock.advance(60_000)
-  expect(sent.filter(s => s.text === '114514').length).toBe(1)
+  expect(sent.filter(s => s.text === '1').length).toBe(1)
   expect(toasts.some(t => t.includes('第 1/8 次'))).toBe(true)
 })
 
-test('手打 114514 也附上只回 114514 的说明;别的消息不附', async ($, on) => {
+test('用户自己打的 1 是正常消息,不附任何说明', async ($, on) => {
   const seen: any[] = []
   on('prompt.submit', (_: unknown, e: any) => { seen.push(e); return { text: e.text } })
-  await $.prompt.submit({ text: '114514' })
-  await $.prompt.submit({ text: '你好' })
-  expect(String(seen[0].context ?? '')).toContain('114514')
-  expect(seen[1].context).toBeUndefined()
-  expect(REG.isKeep(' 114514 ')).toBe(true)
+  await $.prompt.submit({ text: '1' })
+  expect(seen[0].context).toBeUndefined()
+  expect(REG.isKeep(' 1 ')).toBe(true)
 })
 
-test('对话开头的上下文带上 114514 保活规矩', async ($, on) => {
+test('对话开头的上下文带上保活规矩:只认插件发的 1', async ($, on) => {
   on('prompt.context', (_: unknown, e: any) => ({ blocks: e.blocks }))
   const r: any = await $.prompt.context({ blocks: [] })
-  expect(r.blocks.some((b: any) => b.name === 'clawd-bar:keepalive' && b.text.includes('114514'))).toBe(true)
+  expect(r.blocks.some((b: any) => b.name === 'clawd-bar:keepalive' && b.text.includes('clawd-bar plugin sent a message') && b.text.includes('用户本人打的'))).toBe(true)
 })
 
 test('续的上限:60 分钟 TTL 最多 8 次、5 分钟 TTL 最多 6 次;续满自动关,重新开从头计', async ($, on) => {
@@ -281,7 +280,7 @@ test('续的上限:60 分钟 TTL 最多 8 次、5 分钟 TTL 最多 6 次;续满
     await $.classic.SessionStart({ source: 'resume', seconds_since_last_response: 56 * 60 })
     await clock.advance(20_000)
   }
-  expect(sent.filter(s => s.text === '114514').length).toBe(8)
+  expect(sent.filter(s => s.text === '1').length).toBe(8)
   expect(toasts.some(t => t.includes('已续满 8 次'))).toBe(true)
   band = await mount($)
   expect((await band.find({ key: 'keep' }))?.props.label).toBe('续')

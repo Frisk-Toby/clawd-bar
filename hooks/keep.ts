@@ -1,4 +1,4 @@
-// 续缓存:缓存剩几分钟时自动发 114514,模型只回 114514,低成本续上 prompt 缓存。
+// 续缓存:缓存剩几分钟时插件自动发一条 1,模型只回 1,低成本续上 prompt 缓存。
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface } from 'claude-code'
 import type { CacheMark, Ctx } from '../types'
@@ -13,14 +13,14 @@ const keep = atom({ plugin: 'clawd-bar', key: 'keep' } as const, KEEP_OFF, { sha
 const prefs = atom({ plugin: 'clawd-bar', key: 'prefs' } as const, DEFAULT_PREFS, { shape: 'prefs-7' })
 
 // ---------- 续缓存 ----------
-// 开着时,缓存剩 SOON_MIN 分钟就自动发一条 114514;模型读到附带的说明只回 114514,
+// 开着时,缓存剩 SOON_MIN 分钟就以插件的名义自动发一条 1;模型按对话开头的规矩只回 1,
 // 不思考不调工具。这一轮只按约 0.1 倍价读一遍缓存,TTL 从头算,比过期后整段重写便宜得多。
-export const KEEP_TEXT = '114514'
-export const KEEP_HINT =
-  '这条 114514 是 Clawd 插件自动发的缓存保活消息,唯一目的是续上 prompt 缓存。' +
-  '只回复"114514"这六个字符:不要思考,不要调用任何工具,不要读文件,不要接着做上下文里的任务,也不要说别的。'
+// 不用 asUser:"1"太常见(用户回"选 1"也是它),必须让模型看得出这条是插件发的、不是用户本人打的。
+export const KEEP_TEXT = '1'
 export const KEEP_RULE =
-  '用户消息恰好是"114514"时,那是 Clawd 插件的缓存保活消息:只回复"114514",不思考、不调用任何工具、不读文件、不接着做之前的任务、不说别的。'
+  '当 clawd-bar 插件发来一条内容恰好是"1"的消息(以"The clawd-bar plugin sent a message"开头)时,那是缓存保活消息,唯一目的是续上 prompt 缓存:' +
+  '只回复"1",不思考、不调用任何工具、不读文件、不接着做之前的任务、不说别的。' +
+  '用户本人打的"1"(比如回答你给的选项)是正常消息,照常处理。'
 export const isKeep = (text: string | undefined) => (text ?? '').trim() === KEEP_TEXT
 
 /** 按下「续」:开关,并用一条提示讲清楚这个模式会做什么、大概花多少。 */
@@ -48,7 +48,7 @@ export async function keepToggle($: EngineInterface) {
     const cold = cx ? nextCost(cb, cx.tokens, true, ttl) : null
     const ratio = Math.round(writeMult(ttl) / 0.1)
     $.ui.toast(
-      `Clawd 续缓存:已开。缓存剩 ${SOON_MIN} 分钟时自动发 ${KEEP_TEXT},模型只回 ${KEEP_TEXT}(不思考、不调工具),缓存重新计满 ${ttl} 分钟。` +
+      `Clawd 续缓存:已开。缓存剩 ${SOON_MIN} 分钟时自动发 ${KEEP_TEXT},模型只回 ${KEEP_TEXT}(不思考、不调工具;你自己打的 1 不受影响),缓存重新计满 ${ttl} 分钟。` +
         (warm !== null && cold !== null
           ? `每次约耗 5h ${fmtPct(warm)},过期后重写约 ${fmtPct(cold)}。`
           : `每次只按约 0.1 倍价读一遍缓存,比过期后重写便宜约 ${ratio} 倍。`) +
@@ -59,7 +59,7 @@ export async function keepToggle($: EngineInterface) {
   $.ui.invalidate('ui.render')
 }
 
-/** 每个节拍看一眼:开着、空闲、缓存进入最后几分钟、这段缓存还没续过,就发 114514。 */
+/** 每个节拍看一眼:开着、空闲、缓存进入最后几分钟、这段缓存还没续过,就发 1。 */
 export async function keepTick($: EngineInterface) {
   const k = await read($, keep)
   if (!k.on || turns.main) return
@@ -80,8 +80,9 @@ export async function keepTick($: EngineInterface) {
   const n = await update($, keep, cur => ({ ...cur, sentFor: c.lastAt, count: cur.count + 1 }))
   $.ui.toast(`Clawd 续缓存:还剩 ${Math.ceil(v.leftMs / 60_000)} 分钟,已自动发 ${KEEP_TEXT} 续上(第 ${n.count}/${limit} 次)`)
   try {
-    // asUser:消息里只有 114514,不带"插件发来的消息"那层说明,最省。
-    void Promise.resolve($.prompt.submit({ text: KEEP_TEXT, asUser: true })).catch(() => {})
+    // 以插件名义发(不加 asUser),模型才分得清这是保活、不是用户回答"选 1"。
+    turns.keepSent = true
+    void Promise.resolve($.prompt.submit({ text: KEEP_TEXT })).catch(() => { turns.keepSent = false })
   } catch {
     // 发不出去就算了,下个节拍不会重复(sentFor 已记下)。
   }

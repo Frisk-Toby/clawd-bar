@@ -7,7 +7,7 @@ import { EMPTY_CALIB, addTurn, fmtPct, nextCost, settle } from './cost'
 import { COSTUMES, costumeById } from './costumes'
 import { SVG_BUDGET, WAKE_MS, actorSvg, applyAntics, fitCrew, lineup, showW, sleepersAt } from './crew'
 import type { Antics } from './crew'
-import { KEEP_HINT, KEEP_RULE, isKeep, keepLimit, keepTick, keepToggle } from './keep'
+import { KEEP_RULE, isKeep, keepLimit, keepTick, keepToggle } from './keep'
 import { DOTS_W, NIGHT_MODES, clockText, nightCap, nightHit, nightSet, nightSpend, nightTick, skyCells, weekDots, weekOf } from './night'
 import { SKY_CELL_W, SKY_PX_H, pixelSky } from './nightsky'
 import { AMBER, CLAY, DEFAULT_PREFS, KEEP_OFF, NIGHT_OFF, CTX_LIMIT, CTX_SOON, ICE, MOON, MUTED, PANE, RED, RIGHT_PX, SHOW_H, TICK_MS, checkAlerts, ctxPct, ctxTier, fmtAgo, savePrefs, stamp, takeContext, turns, viewOf, week } from './state'
@@ -16,7 +16,7 @@ export { viewOf, CTX_LIMIT, ctxPct, ctxTier } from './state'
 export { fitCrew, lineup, SVG_BUDGET } from './crew'
 export { barSvg } from './bar'
 export { nightCap, DOTS_W, weekDots, clockText } from './night'
-export { KEEP_TEXT, KEEP_HINT, KEEP_RULE, isKeep, keepLimit } from './keep'
+export { KEEP_TEXT, KEEP_RULE, isKeep, keepLimit } from './keep'
 export type { CtxTier } from './state'
 export type { Actor } from './crew'
 
@@ -109,7 +109,9 @@ export const register: Register = on => {
   on('turn.start', async ($, e, next) => {
     if (!e.agentId) {
       turns.main = e.turnId
-      turns.keep = isKeep(e.text) ? e.turnId : null
+      // 只有插件刚发出去的那条 1 算续缓存;用户自己打的 1 是正常一轮。
+      turns.keep = turns.keepSent && isKeep(e.text) ? e.turnId : null
+      turns.keepSent = false
     }
     return next(e)
   })
@@ -130,13 +132,12 @@ export const register: Register = on => {
   })
 
   // 规矩写进对话开头的上下文:每个对话只算一次、随缓存前缀走,不多耗 token,也不打断已有会话的缓存
-  // (已经开着的会话要等压缩或 /clear 后才带上)。插件自己发的 114514 不经过自己的 prompt.submit 钩子,靠的就是这条。
+  // (已经开着的会话要等压缩或 /clear 后才带上)。插件自己发的 1 不经过自己的 prompt.submit 钩子,靠的就是这条。
   on('prompt.context', async ($, e, next) => {
     const r = await next(e)
     return { ...r, blocks: [...r.blocks, { name: 'clawd-bar:keepalive', text: KEEP_RULE }] }
   })
 
-  // 手打的 114514 后面附一句只给模型看的说明,老会话里也管用。
   // 你一开口:正在打瞌睡的全员吓一跳醒过来。
   on('prompt.submit', async ($, e, next) => {
     if ((e as { origin?: { kind?: string } }).origin?.kind === 'composer') {
@@ -148,7 +149,7 @@ export const register: Register = on => {
       }
       antics.lastUserAt = now
     }
-    return !e.command && isKeep(e.text) ? next({ ...e, context: [...(e.context ?? []), KEEP_HINT] }) : next(e)
+    return next(e)
   })
 
   // 一轮因为接口报错停下;是限额的话交给深夜模式。

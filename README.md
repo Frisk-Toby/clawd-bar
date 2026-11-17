@@ -7,7 +7,7 @@
 它们陪你写代码，也替你盯着 prompt 缓存还剩多久。
 
 <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square" alt="Claude Code plugin">
-<img src="https://img.shields.io/badge/版本-1.0.0-c96c4f?style=flat-square" alt="version">
+<img src="https://img.shields.io/badge/版本-1.1.0-c96c4f?style=flat-square" alt="version">
 <img src="https://img.shields.io/badge/角色-17_个职业-e7b64f?style=flat-square" alt="17 costumes">
 <img src="https://img.shields.io/badge/测试-22_通过-7fc8a9?style=flat-square" alt="tests">
 <a href="https://github.com/Frisk-Toby/clawd-bar/releases/latest"><img src="https://img.shields.io/github/v/release/Frisk-Toby/clawd-bar?style=flat-square&color=b39ae6&label=发行版" alt="release"></a>
@@ -79,7 +79,7 @@
 
 <img src="docs/panel.svg" alt="展开面板：夜空、续、夜班" width="100%">
 
-**续：用最低成本保住缓存。** 开启后，缓存只剩 5 分钟、而且 Claude 没在干活时，插件会替你发一条 `114514`。模型事先已经被告知：看到这条消息只回 `114514`,不思考、不调工具。这样一次只花一点读缓存的钱，缓存就又续满一轮，比过期后把整段上下文重写一遍便宜得多。续有次数上限(60 分钟 TTL 最多 8 次，5 分钟 TTL 最多 6 次),续满会自动关掉，不会一直空烧额度。
+**续：用最低成本保住缓存。** 开启后，缓存只剩 5 分钟、而且 Claude 没在干活时，插件会以自己的名义发一条 `1`。模型事先已经被告知：看到插件发来的 `1` 只回 `1`,不思考、不调工具;你自己打的 `1`(比如回答「选 1」)照常处理，不受影响。这样一次只花一点读缓存的钱，缓存就又续满一轮，比过期后把整段上下文重写一遍便宜得多。续有次数上限(60 分钟 TTL 最多 8 次，5 分钟 TTL 最多 6 次),续满会自动关掉，不会一直空烧额度。
 
 **夜班：睡觉时也让 Claude 接着干。** 让 Claude 通宵跑任务时，如果中途撞上额度上限，打开夜班后它会等额度恢复，再自动接着干。50% 和 100% 是今晚最多允许花掉剩余周额度的多少。旁边的圆点是本周的周额度：实心是还剩的，小点是已经用掉的，月光色那段是今晚允许花的。
 

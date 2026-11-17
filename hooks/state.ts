@@ -37,7 +37,7 @@ export const panel = atom({ plugin: 'clawd-bar', key: 'panel' } as const, false,
 export const KEEP_OFF: Keep = { on: false, sentFor: 0, count: 0 }
 export const keep = atom({ plugin: 'clawd-bar', key: 'keep' } as const, KEEP_OFF, { shape: 'keep-1' })
 /** 主线程正在跑的那一轮(深夜模式花完预算时用它停下)和其中的续缓存轮次(它的输出不计进平均输出)。 */
-export const turns = { main: null as string | null, keep: null as string | null }
+export const turns = { main: null as string | null, keep: null as string | null, keepSent: false }
 
 
 export type View = { mood: Mood; leftMs: number; ttlMs: number }
